@@ -1,5 +1,7 @@
 import sys
 import random
+import base64
+import uuid
 
 B32_SPACE = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')
 B32_LEN = 26
@@ -14,13 +16,9 @@ def keep_only_b32(s):
 
 
 def readable_uuid(start_word):
-    uuid = keep_only_b32(start_word[:B32_LEN].upper())
-
-    if len(uuid) < B32_LEN:
-        diff = B32_LEN - len(uuid)
-        uuid += ''.join(random.choice(B32_SPACE) for _ in xrange(diff))
-
-    return uuid
+    u = keep_only_b32(start_word[:24].upper())
+    real_uuid = base64.b32encode(uuid.uuid4().bytes)[:B32_LEN]
+    return u + real_uuid[-(B32_LEN - len(u)):]
 
 """
 Generate a random base32-encoded uuid (A-Z,2-7) with an optional readable word in the beginning.
@@ -41,9 +39,9 @@ def main():
     if len(sys.argv) > 1:
         start_word = sys.argv[1]
 
-    uuid = readable_uuid(start_word)
+    u = readable_uuid(start_word)
 
-    sys.stdout.write(uuid)
+    sys.stdout.write(u)
     if sys.stdout.isatty():
         sys.stdout.write('\n')
     return 0
